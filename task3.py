@@ -1,15 +1,8 @@
 from preprocess import get_train_valid
 from preprocess import train_by_params
 import torch
-import torchvision
-import torchvision.transforms as transforms
-import torch.utils.data as data
 import numpy as np
-from mobilenet import MobileNet
-import random
-from utils import plot_loss_acc
-import matplotlib.pyplot as plt
-import math
+import torch.utils.data as data
 
 def main():
     # fix random seeds
@@ -26,14 +19,11 @@ def main():
     train_loader = data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=1)
     valid_loader = data.DataLoader(valset, batch_size=batch_size, shuffle=False, num_workers=1)
 
-
-    epochs = 300
-    learning_rate = 0.01 
-    weight_decay = 5e-4
-    train_by_params(train_loader, valid_loader, epochs, learning_rate, weight_decay, True)
-    print("train with best learning rate and weight decay 1e-4 and lr schedule")
-    weight_decay = 1e-4
-    train_by_params(train_loader, valid_loader, epochs, learning_rate, weight_decay, True)
+    lr_list = [0.5, 0.05, 0.01]
+    epochs = 15
+    for learning_rate in lr_list:
+        print(f"train for leaning rate {learning_rate} and no scheduler: ")
+        train_by_params(train_loader, valid_loader, epochs, learning_rate)
 
 if __name__ == '__main__':
     main()

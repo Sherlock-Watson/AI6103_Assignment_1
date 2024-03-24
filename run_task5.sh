@@ -5,8 +5,8 @@
 #SBATCH --gres=gpu:1 
 #SBATCH --mem=1G 
 #SBATCH --job-name=task5
-#SBATCH --output=output/output_%x_%j.out
-#SBATCH --error=output/error_%x_%j.err 
+#SBATCH --output=output/%x/output_%x_%j.out
+#SBATCH --error=output/%x/error_%x_%j.err 
 
 module load anaconda3/23.5.2 
 eval "$(conda shell.bash hook)" 
