@@ -22,7 +22,7 @@ def main():
 
 
     epochs = 300
-    learning_rate = 0.01 
+    learning_rate = 0.05 
     print("train with best learning rate")
     train_by_params(train_loader, valid_loader, epochs, learning_rate)
     print("train with cosine annealing with the initial learning rate")

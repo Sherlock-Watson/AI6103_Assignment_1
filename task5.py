@@ -28,7 +28,7 @@ def main():
 
 
     epochs = 300
-    learning_rate = 0.01 
+    learning_rate = 0.05 
     weight_decay = 5e-4
     train_by_params(train_loader, valid_loader, epochs, learning_rate, weight_decay, True)
     print("train with best learning rate and weight decay 1e-4 and lr schedule")
