@@ -10,8 +10,19 @@ import torchvision.transforms as transforms
 from mobilenet import MobileNet
 import matplotlib.pyplot as plt
 
+def mixup_data(x, y, alpha=0.2):
+    lam = np.random.beta(alpha, alpha)
+    batch_size = x.size()[0]
+    index = torch.randperm(batch_size).cuda()
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
 
-def train_with_mixup(train_loader, valid_loader, epochs, learning_rate, weight_decay=0, lr_scheduler=False):
+def mixup_criterion(pred, y_a, y_b, lam):
+    criterion = torch.nn.CrossEntropyLoss().cuda()
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+def train_with_mixup(train_loader, valid_loader, test_loader, epochs, learning_rate, weight_decay=0, lr_scheduler=False):
     mixup = v2.MixUp(alpha=0.2, num_classes=100)
     # model
     model = MobileNet(100)
@@ -40,20 +51,18 @@ def train_with_mixup(train_loader, valid_loader, epochs, learning_rate, weight_d
         val_samples = 0
         # training
         model.train()
-        for img, labels in train_loader:
-            img = img.cuda()
+        for imgs, labels in train_loader:
+            imgs = imgs.cuda()
             labels = labels.cuda()
-
-            img, labels = mixup(img, labels)
-
-            batch_size = img.shape[0]
+            mixed_x, y_a, y_b, lam = mixup_data(imgs, labels)
+            batch_size = mixed_x.shape[0]
             optimizer.zero_grad()
-            logits = model.forward(img)
-            loss = criterion(logits, labels)
+            logits = model.forward(mixed_x)
+            loss = mixup_criterion(logits, y_a, y_b, lam)
             loss.backward()
             optimizer.step()
             _, top_class = logits.topk(1, dim=1)
-            equals = top_class == labels.view(*top_class.shape)
+            equals = top_class == labels.cuda().view(*top_class.shape)
             training_acc += torch.sum(equals.type(torch.FloatTensor)).item()
             training_loss += batch_size * loss.item()
             training_samples += batch_size
@@ -80,6 +89,10 @@ def train_with_mixup(train_loader, valid_loader, epochs, learning_rate, weight_d
         # lr scheduler
         if lr_scheduler:
             scheduler.step()
+    print(f'stat_training_loss = {stat_training_loss}')
+    print(f'stat_val_loss = {stat_val_loss}')
+    print(f'stat_training_acc = {stat_training_acc}')
+    print(f'stat_val_acc = {stat_val_acc}')
     test_loss = 0
     test_acc = 0
     test_samples = 0
@@ -106,7 +119,7 @@ def get_test_set(data_dir):
         transforms.RandomCrop(size=32, padding=4),
         transforms.Normalize(mean, std)
     ])
-    testset = torchvision.datasets.CIFAR100(data_dir, train=False, download=False, transform=transform)
+    testset = torchvision.datasets.CIFAR100(data_dir, train=False, download=True, transform=transform)
     return testset
 
 if __name__== '__main__':
@@ -130,5 +143,5 @@ if __name__== '__main__':
     epochs = 300
     print("task 6")
     weight_decay = 5e-4
-    train_with_mixup(train_loader, valid_loader, epochs, learning_rate, weight_decay, True)
+    train_with_mixup(train_loader, valid_loader, test_loader, epochs, learning_rate, weight_decay, True)
     

@@ -110,7 +110,7 @@ def train_by_params(train_loader, valid_loader, epochs, learning_rate, weight_de
             f"Epoch {(epoch + 1):d}/{epochs:d}.. Learning rate: {learning_rate}.. Train loss: {(training_loss / training_samples):.4f}.. Train acc: {(training_acc / training_samples):.4f}.. Val loss: {(val_loss / val_samples):.4f}.. Val acc: {(val_acc / val_samples):.4f}")
         # lr scheduler
         scheduler.step()
-    print(f'stat_training_loss = {stat_training_loss:.4f}')
-    print(f'stat_val_loss = {stat_val_loss:.4f}')
-    print(f'stat_training_acc = {stat_training_acc:.4f}')
-    print(f'stat_val_acc = {stat_val_acc:.4f}')
+    print(f'stat_training_loss = {stat_training_loss}')
+    print(f'stat_val_loss = {stat_val_loss}')
+    print(f'stat_training_acc = {stat_training_acc}')
+    print(f'stat_val_acc = {stat_val_acc}')
